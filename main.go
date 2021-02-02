@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -37,6 +38,13 @@ func requestInterestedWords() []string {
 }
 
 func main() {
+
+	// heroku requires us to listen on a port
+	go func() {
+		port := os.Getenv("PORT")
+		http.ListenAndServe("0.0.0.0:"+port, nil)
+	}()
+
 	c := colly.NewCollector(
 		colly.AllowURLRevisit(),
 		colly.Debugger(&debug.LogDebugger{}),
@@ -114,6 +122,6 @@ func main() {
 		if err := c.Visit("https://rsshub.app/sina/finance"); err != nil {
 			fmt.Printf("%v\n", err)
 		}
-		time.Sleep(5 * time.Minute)
+		time.Sleep(10 * time.Minute)
 	}
 }
