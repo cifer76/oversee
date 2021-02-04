@@ -3,25 +3,24 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/gocolly/colly/v2"
-	"github.com/gocolly/colly/v2/debug"
 	"github.com/patrickmn/go-cache"
+
+	"github.com/cifer76/oversee/collectors"
 )
 
 var (
 	interestedWords []string
-	sentLinks       = cache.New(60*time.Minute, 60*time.Second)
+	tgbot           *tgbotapi.BotAPI
+	sentLinks       = cache.New(24*time.Hour, 60*time.Second)
 )
 
 func requestInterestedWords() []string {
-	gistURL := "https://gist.githubusercontent.com/cifer76/7f14f5bd02b98abbc11d16662266a572/raw/81c942b968c06f3e1c74418d569d2a37275e20ee/interestedWords"
+	gistURL := "https://gist.githubusercontent.com/cifer76/7f14f5bd02b98abbc11d16662266a572/raw"
 
 	interestedWords := []string{}
 	resp, err := http.Get(gistURL)
@@ -37,91 +36,48 @@ func requestInterestedWords() []string {
 	return interestedWords
 }
 
-func main() {
+func sendNews(title, link string) {
+	// dont send duplicate articles
+	if _, found := sentLinks.Get(link); found {
+		return
+	}
 
-	// heroku requires us to listen on a port
+	for _, w := range interestedWords {
+		if !strings.Contains(title, w) {
+			continue
+		}
+
+		content := fmt.Sprintf("<a href=\"%s\">%s</a>", link, title)
+		msg := tgbotapi.MessageConfig{
+			BaseChat: tgbotapi.BaseChat{
+				ChatID:           406797693,
+				ReplyToMessageID: 0,
+			},
+			Text:      content,
+			ParseMode: "HTML",
+		}
+		if _, err := tgbot.Send(msg); err != nil {
+			fmt.Printf("tg send fail, error: %v, message: %v\n", err, content)
+		}
+		sentLinks.Set(link, true, 0)
+		break
+	}
+}
+
+func main() {
+	tgbot, _ = tgbotapi.NewBotAPI("407954143:AAGDxLmxcr5DGVE3GY_Ih9pe8GIh-P0EhDI")
+	//bot.Debug = true
+	collectors.Init()
+
 	go func() {
-		port := os.Getenv("PORT")
-		http.ListenAndServe("0.0.0.0:"+port, nil)
+		for {
+			interestedWords = requestInterestedWords()
+			time.Sleep(5 * time.Minute)
+		}
 	}()
 
-	c := colly.NewCollector(
-		colly.AllowURLRevisit(),
-		colly.Debugger(&debug.LogDebugger{}),
-	)
-
-	bot, err := tgbotapi.NewBotAPI("407954143:AAGDxLmxcr5DGVE3GY_Ih9pe8GIh-P0EhDI")
-	if err != nil {
-		log.Panic(err)
-	}
-	//bot.Debug = true
-
-	// Find and visit all links
-	c.OnHTML(".news-li", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		// Print link
-		fmt.Printf("Link found: %q -> %s\n", e.Text, link)
-		// Visit link found on page
-		// Only those links are visited which are in AllowedDomains
-		// e.Request.Visit(e.Attr("href"))
-	})
-
-	// handler for:
-	// https://rsshub.app/sina/finance
-	// https://a.jiemian.com/index.php?m=article&a=rss
-	c.OnXML("//item", func(e *colly.XMLElement) {
-		// Print link
-		title := e.ChildText("title")
-		link := e.ChildText("link")
-		//pubDate := e.ChildText("pubDate")
-		desc := e.ChildText("description")
-
-		fmt.Printf("Article found: %s -> %s\n", title, link)
-		//fmt.Printf("\t\t Published on: %s\n", pubDate)
-		//fmt.Printf("\t\t Brief: %s\n", desc)
-
-		if _, found := sentLinks.Get(link); found {
-			return
-		}
-
-		for _, w := range interestedWords {
-			// avoid sending duplicate articles
-
-			if strings.Contains(title, w) || strings.Contains(desc, w) {
-				content := fmt.Sprintf("[%s](%s)", title, link)
-				msg := tgbotapi.MessageConfig{
-					BaseChat: tgbotapi.BaseChat{
-						ChatID:           406797693,
-						ReplyToMessageID: 0,
-					},
-					Text:                  content,
-					ParseMode:             "MarkdownV2",
-					DisableWebPagePreview: false,
-				}
-				bot.Send(msg)
-
-				sentLinks.Set(link, true, 0)
-
-				break
-			}
-		}
-		// Visit link found on page
-		// Only those links are visited which are in AllowedDomains
-		// e.Request.Visit(e.Attr("href"))
-	})
-
-	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL)
-	})
-
-	for {
-		interestedWords = requestInterestedWords()
-		if err := c.Visit("https://a.jiemian.com/index.php?m=article&a=rss"); err != nil {
-			fmt.Printf("%v\n", err)
-		}
-		if err := c.Visit("https://rsshub.app/sina/finance"); err != nil {
-			fmt.Printf("%v\n", err)
-		}
-		time.Sleep(10 * time.Minute)
+	for news := range collectors.Visit() {
+		fmt.Printf("Source: %s, %q -> %s\n", news.Source, news.Title, news.Link)
+		sendNews(news.Title, news.Link)
 	}
 }

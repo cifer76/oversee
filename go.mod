@@ -1,4 +1,4 @@
-module oversee
+module github.com/cifer76/oversee
 
 go 1.13
 
