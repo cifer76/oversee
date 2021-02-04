@@ -11,6 +11,7 @@ import (
 	"github.com/patrickmn/go-cache"
 
 	"github.com/cifer76/oversee/collectors"
+	"github.com/cifer76/oversee/entity"
 )
 
 var (
@@ -36,32 +37,42 @@ func requestInterestedWords() []string {
 	return interestedWords
 }
 
-func sendNews(title, link string) {
+func needCheckInterest(source string) bool {
+	return source != "Stcn" && source != "Zqrb"
+}
+
+func sendNews(news entity.PieceOfNews) {
 	// dont send duplicate articles
-	if _, found := sentLinks.Get(link); found {
+	if _, found := sentLinks.Get(news.Link); found {
 		return
 	}
 
-	for _, w := range interestedWords {
-		if !strings.Contains(title, w) {
-			continue
+	if needCheckInterest(news.Source) {
+		interested := false
+		for _, w := range interestedWords {
+			if strings.Contains(news.Title, w) {
+				interested = true
+				break
+			}
 		}
-
-		content := fmt.Sprintf("<a href=\"%s\">%s</a>", link, title)
-		msg := tgbotapi.MessageConfig{
-			BaseChat: tgbotapi.BaseChat{
-				ChatID:           406797693,
-				ReplyToMessageID: 0,
-			},
-			Text:      content,
-			ParseMode: "HTML",
+		if !interested {
+			return
 		}
-		if _, err := tgbot.Send(msg); err != nil {
-			fmt.Printf("tg send fail, error: %v, message: %v\n", err, content)
-		}
-		sentLinks.Set(link, true, 0)
-		break
 	}
+
+	content := fmt.Sprintf("<a href=\"%s\">%s</a>", news.Link, news.Title)
+	msg := tgbotapi.MessageConfig{
+		BaseChat: tgbotapi.BaseChat{
+			ChatID:           406797693,
+			ReplyToMessageID: 0,
+		},
+		Text:      content,
+		ParseMode: "HTML",
+	}
+	if _, err := tgbot.Send(msg); err != nil {
+		fmt.Printf("tg send fail, error: %v, message: %v\n", err, content)
+	}
+	sentLinks.Set(news.Link, true, 0)
 }
 
 func main() {
@@ -78,6 +89,6 @@ func main() {
 
 	for news := range collectors.Visit() {
 		fmt.Printf("Source: %s, %q -> %s\n", news.Source, news.Title, news.Link)
-		sendNews(news.Title, news.Link)
+		sendNews(news)
 	}
 }
