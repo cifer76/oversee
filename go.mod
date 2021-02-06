@@ -8,4 +8,5 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
+	github.com/yanyiwu/gojieba v1.1.2
 )

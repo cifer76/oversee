@@ -2,6 +2,7 @@ package collectors
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gocolly/colly/v2"
 
@@ -9,6 +10,7 @@ import (
 )
 
 func sendNews(news chan entity.PieceOfNews, title, link string) {
+	title = strings.TrimSpace(title)
 	news <- entity.PieceOfNews{
 		Title:  title,
 		Link:   link,
