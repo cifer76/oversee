@@ -74,6 +74,7 @@ func checkDuplicates(piece entity.PieceOfNews) bool {
 		// cut off news title
 		count := 0
 		words := jieba.Cut(piece.Title, true)
+		piece.Tags = words
 		for _, w := range words {
 			if ok, _ := check[w]; ok {
 				count++
