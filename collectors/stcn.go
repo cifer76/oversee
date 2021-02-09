@@ -80,20 +80,20 @@ func NewStcnCollector(news chan entity.PieceOfNews) Collector {
 		sendNews(news, e.Text, link)
 	})
 	// section - chuangtou
-	c.OnHTML("div.box div.chuangtou ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
+	//	c.OnHTML("div.box div.chuangtou ul.list li a[href]", func(e *colly.HTMLElement) {
+	//		link := e.Attr("href")
+	//		sendNews(news, e.Text, link)
+	//	})
 	// section - shengufaxing
 	c.OnHTML("div.box div.shengufaxing ul.list li a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
 		sendNews(news, e.Text, link)
 	})
 	// section - zhuanti
-	c.OnHTML("div.box div.zhuanti ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
+	//c.OnHTML("div.box div.zhuanti ul.list li a[href]", func(e *colly.HTMLElement) {
+	//	link := e.Attr("href")
+	//	sendNews(news, e.Text, link)
+	//})
 
 	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)
