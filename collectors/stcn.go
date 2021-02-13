@@ -11,6 +11,7 @@ import (
 
 func sendNews(news chan entity.PieceOfNews, title, link string) {
 	title = strings.TrimSpace(title)
+	link = "https://t.me/iv?url=" + link + "&rhash=3db6a6ffbc7602"
 	news <- entity.PieceOfNews{
 		Title:  title,
 		Link:   link,
@@ -49,51 +50,53 @@ func NewStcnCollector(news chan entity.PieceOfNews) Collector {
 		link := e.Attr("href")
 		sendNews(news, e.Text, link)
 	})
-	// section - stock
-	c.OnHTML("div.box div.gushi ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
-	// section - data
-	c.OnHTML("div.box div.shuju ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
-	// section - company
-	c.OnHTML("div.box div.gongsi ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
-	// section - deep
-	c.OnHTML("div.box div.shendu ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
-	// section - orgnazition
-	c.OnHTML("div.box div.jigou ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
-	// section - fund
-	c.OnHTML("div.box div.jijin ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
-	// section - chuangtou
-	//	c.OnHTML("div.box div.chuangtou ul.list li a[href]", func(e *colly.HTMLElement) {
-	//		link := e.Attr("href")
-	//		sendNews(news, e.Text, link)
-	//	})
-	// section - shengufaxing
-	c.OnHTML("div.box div.shengufaxing ul.list li a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		sendNews(news, e.Text, link)
-	})
-	// section - zhuanti
-	//c.OnHTML("div.box div.zhuanti ul.list li a[href]", func(e *colly.HTMLElement) {
-	//	link := e.Attr("href")
-	//	sendNews(news, e.Text, link)
-	//})
+	/*
+		// section - stock
+		c.OnHTML("div.box div.gushi ul.list li a[href]", func(e *colly.HTMLElement) {
+			link := e.Attr("href")
+			sendNews(news, e.Text, link)
+		})
+		// section - data
+		// c.OnHTML("div.box div.shuju ul.list li a[href]", func(e *colly.HTMLElement) {
+		//		link := e.Attr("href")
+		//		sendNews(news, e.Text, link)
+		//	})
+		// section - company
+		c.OnHTML("div.box div.gongsi ul.list li a[href]", func(e *colly.HTMLElement) {
+			link := e.Attr("href")
+			sendNews(news, e.Text, link)
+		})
+		// section - deep
+		c.OnHTML("div.box div.shendu ul.list li a[href]", func(e *colly.HTMLElement) {
+			link := e.Attr("href")
+			sendNews(news, e.Text, link)
+		})
+		// section - orgnazition
+		c.OnHTML("div.box div.jigou ul.list li a[href]", func(e *colly.HTMLElement) {
+			link := e.Attr("href")
+			sendNews(news, e.Text, link)
+		})
+		// section - fund
+		c.OnHTML("div.box div.jijin ul.list li a[href]", func(e *colly.HTMLElement) {
+			link := e.Attr("href")
+			sendNews(news, e.Text, link)
+		})
+		// section - chuangtou
+		//	c.OnHTML("div.box div.chuangtou ul.list li a[href]", func(e *colly.HTMLElement) {
+		//		link := e.Attr("href")
+		//		sendNews(news, e.Text, link)
+		//	})
+		// section - shengufaxing
+		c.OnHTML("div.box div.shengufaxing ul.list li a[href]", func(e *colly.HTMLElement) {
+			link := e.Attr("href")
+			sendNews(news, e.Text, link)
+		})
+		// section - zhuanti
+		// c.OnHTML("div.box div.zhuanti ul.list li a[href]", func(e *colly.HTMLElement) {
+		// 	 link := e.Attr("href")
+		//	 sendNews(news, e.Text, link)
+		// })
+	*/
 
 	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)

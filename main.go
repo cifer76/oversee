@@ -81,10 +81,10 @@ func checkDuplicates(piece entity.PieceOfNews) bool {
 			}
 		}
 
-		// if overlap rate exceeds 50%, take them as duplicated
-		if float64(count)/float64(len(check)) >= 0.5 {
+		// if overlap rate exceeds 45%, take them as duplicated
+		if float64(count)/float64(len(words)) >= 0.45 {
 			dup = true
-			fmt.Printf("Found duplicates:\n\tnew: %v\n\texist: %v\n", piece, v)
+			fmt.Printf("Found duplicates:\n\t  new: %v\n\texist: %v\n", piece, v)
 			break
 		}
 	}
@@ -123,6 +123,7 @@ func sendNews(news entity.PieceOfNews) {
 		Text:      content,
 		ParseMode: "HTML",
 	}
+	_ = msg
 	if _, err := tgbot.Send(msg); err != nil {
 		fmt.Printf("tg send fail, error: %v, message: %v\n", err, content)
 	}

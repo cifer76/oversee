@@ -17,6 +17,7 @@ func NewJiemianCollector(news chan entity.PieceOfNews) Collector {
 		// Print link
 		title := e.ChildText("title")
 		link := e.ChildText("link")
+		link = "https://t.me/iv?url=" + link + "&rhash=c8ed79f38e16c2"
 		news <- entity.PieceOfNews{
 			Title:  title,
 			Link:   link,

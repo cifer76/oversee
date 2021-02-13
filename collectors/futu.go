@@ -34,9 +34,10 @@ func NewFutuCollector(news chan entity.PieceOfNews) Collector {
 		json.Unmarshal(rsp["list"], &as)
 
 		for _, a := range as {
+			link := "https://t.me/iv?url=" + a.Link + "&rhash=66c8e82d1af8a5"
 			news <- entity.PieceOfNews{
 				Title:  a.Title,
-				Link:   a.Link,
+				Link:   link,
 				Source: "Futu",
 			}
 		}
