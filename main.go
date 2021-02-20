@@ -21,7 +21,7 @@ var (
 	interestedWords []string
 	tgbot           *tgbotapi.BotAPI
 
-	sentNews      = cache.New(120*time.Hour, 60*time.Second)
+	sentNews      = cache.New(144*time.Hour, 60*time.Second)
 	jieba         = gojieba.NewJieba()
 	cacheFileName = "sentNews.bin"
 )
@@ -94,7 +94,8 @@ func checkDuplicates(piece entity.PieceOfNews) bool {
 	return dup
 }
 
-func sendNews(news entity.PieceOfNews) {
+// sendNews returns true if the message is sent, false if the message is filtered
+func sendNews(news entity.PieceOfNews) bool {
 
 	if needCheckInterest(news.Source) {
 		interested := false
@@ -105,19 +106,21 @@ func sendNews(news entity.PieceOfNews) {
 			}
 		}
 		if !interested {
-			return
+			return false
 		}
 	}
 
 	// dont send duplicate articles
 	if checkDuplicates(news) {
-		return
+		return false
 	}
 
-	content := fmt.Sprintf("<a href=\"%s\">%s</a>", news.Link, news.Title)
+	//content := fmt.Sprintf("<a href=\"%s\">%s</a>", news.Link, news.Title)
+	content := news.Link
 	msg := tgbotapi.MessageConfig{
 		BaseChat: tgbotapi.BaseChat{
-			ChatID:           406797693,
+			//ChatID:           406797693,
+			ChannelUsername:  "@oversee2021",
 			ReplyToMessageID: 0,
 		},
 		Text:      content,
@@ -127,6 +130,7 @@ func sendNews(news entity.PieceOfNews) {
 	if _, err := tgbot.Send(msg); err != nil {
 		fmt.Printf("tg send fail, error: %v, message: %v\n", err, content)
 	}
+	return true
 }
 
 func main() {
@@ -157,7 +161,10 @@ func main() {
 	}()
 
 	for news := range collectors.Visit() {
-		fmt.Printf("Source: %s, %q -> %s\n", news.Source, news.Title, news.Link)
-		sendNews(news)
+		sent := sendNews(news)
+		if sent {
+			time.Sleep(50 * time.Millisecond) // rate limit to telegram server
+		}
+		fmt.Printf("Source: %s, sent: %v, %q -> %s\n", news.Source, sent, news.Title, news.Link)
 	}
 }
