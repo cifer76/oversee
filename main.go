@@ -21,7 +21,7 @@ var (
 	interestedWords []string
 	tgbot           *tgbotapi.BotAPI
 
-	sentNews      = cache.New(144*time.Hour, 60*time.Second)
+	sentNews      = cache.New(120*time.Hour, 60*time.Second)
 	jieba         = gojieba.NewJieba()
 	cacheFileName = "sentNews.bin"
 )
@@ -81,8 +81,8 @@ func checkDuplicates(piece entity.PieceOfNews) bool {
 			}
 		}
 
-		// if overlap rate exceeds 45%, take them as duplicated
-		if float64(count)/float64(len(words)) >= 0.45 {
+		// if overlap rate exceeds 30%, take them as duplicated
+		if float64(count)/float64(len(words)) >= 0.30 {
 			dup = true
 			fmt.Printf("Found duplicates:\n\t  new: %v\n\texist: %v\n", piece, v)
 			break
