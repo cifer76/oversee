@@ -42,9 +42,9 @@ func Visit() chan entity.PieceOfNews {
 func Init() {
 	news = make(chan entity.PieceOfNews, 1024)
 
-	collectors = append(collectors, NewStcnCollector(news))
-	//	collectors = append(collectors, NewZqrbCollector(news))
+	//collectors = append(collectors, NewZqrbCollector(news))
 	collectors = append(collectors, NewSinaCollector(news))
-	collectors = append(collectors, NewJiemianCollector(news))
-	collectors = append(collectors, NewFutuCollector(news))
+	// collectors = append(collectors, NewStcnCollector(news))
+	// collectors = append(collectors, NewJiemianCollector(news))
+	// collectors = append(collectors, NewFutuCollector(news))
 }
